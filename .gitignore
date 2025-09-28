@@ -48,3 +48,4 @@ data/
 # Private documentation files
 doc/BusinessLogic/hga-ref.md
 doc/BusinessLogic/tax-analysis.md
+var/
