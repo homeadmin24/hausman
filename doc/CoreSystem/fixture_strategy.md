@@ -18,7 +18,7 @@ docker compose exec web php bin/console doctrine:fixtures:load --group=demo-data
 # 4. Demo business: 3 WEGs, 12 units, sample transactions
 #
 # Result: Full demo system ready to use
-# Login: wegadmin@demo.local / demo123
+# Login: wegadmin@demo.local / [DEMO_PASSWORD from .env]
 # Docker access: http://127.0.0.1:8000
 ```
 

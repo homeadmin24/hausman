@@ -19,40 +19,43 @@ class DemoUserFixtures extends Fixture implements FixtureGroupInterface, Depende
 
     public function load(ObjectManager $manager): void
     {
+        // Use environment variable for demo password, fallback to secure default
+        $demoPassword = $_ENV['DEMO_PASSWORD'] ?? 'ChangeMe123!';
+        
         $demoUsers = [
             [
                 'email' => 'viewer@demo.local',
                 'firstName' => 'Demo',
                 'lastName' => 'Betrachter',
-                'password' => 'demo123',
+                'password' => $demoPassword,
                 'roles' => ['ROLE_VIEWER'],
             ],
             [
                 'email' => 'buchhalter@demo.local',
                 'firstName' => 'Demo',
                 'lastName' => 'Buchhalter',
-                'password' => 'demo123',
+                'password' => $demoPassword,
                 'roles' => ['ROLE_ACCOUNTANT'],
             ],
             [
                 'email' => 'hausverwaltung@demo.local',
                 'firstName' => 'Demo',
                 'lastName' => 'Hausverwaltung',
-                'password' => 'demo123',
+                'password' => $demoPassword,
                 'roles' => ['ROLE_PROPERTY_MANAGER'],
             ],
             [
                 'email' => 'wegadmin@demo.local',
                 'firstName' => 'Demo',
                 'lastName' => 'WEG-Administrator',
-                'password' => 'demo123',
+                'password' => $demoPassword,
                 'roles' => ['ROLE_WEG_ADMIN'],
             ],
             [
                 'email' => 'testmanager@demo.local',
                 'firstName' => 'Test',
                 'lastName' => 'Manager',
-                'password' => 'demo123',
+                'password' => $demoPassword,
                 'roles' => ['ROLE_PROPERTY_MANAGER', 'ROLE_ACCOUNTANT'],
             ],
         ];
