@@ -15,6 +15,7 @@ German WEG-specific business logic, financial calculations, and regulatory compl
 ### ⚙️ **CoreSystem/** - Application Features & User Interface
 Core application functionality, user-facing features, and system workflows:
 
+- **[CSV Import System](doc/CoreSystem/csv_import_system.md)** - Bank statement import with auto-categorization and duplicate detection
 - **[Zahlungskategorie System](doc/CoreSystem/zahlungskategorie-system.md)** - Database-driven payment category system
 - **[Admin Zahlungskategorie](doc/CoreSystem/admin_zahlungskategorie.md)** - Analysis of payment category editability
 - **[Authentication System](doc/CoreSystem/auth_system_concept.md)** - User roles, permissions, and security implementation

@@ -6,7 +6,7 @@ use App\Repository\WegEinheitVorauszahlungRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: WegEinheitVorauszahlungRepository::class)]
-#[ORM\Table(name: 'unit_monthly_payment')]
+#[ORM\Table(name: 'weg_einheit_vorauszahlung')]
 #[ORM\UniqueConstraint(name: 'unique_weg_einheit_year', columns: ['weg_einheit_id', 'year'])]
 class WegEinheitVorauszahlung
 {

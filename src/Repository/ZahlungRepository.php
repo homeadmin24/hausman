@@ -133,4 +133,18 @@ class ZahlungRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find payments that are not fully categorized (missing hauptkategorie OR kostenkonto).
+     *
+     * @return Zahlung[]
+     */
+    public function findUncategorized(): array
+    {
+        return $this->createQueryBuilder('z')
+            ->where('z.hauptkategorie IS NULL OR z.kostenkonto IS NULL')
+            ->orderBy('z.datum', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

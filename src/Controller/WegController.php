@@ -25,6 +25,7 @@ class WegController extends AbstractController
         WegEinheitRepository $wegEinheitRepository,
         UmlageschluesselRepository $umlageschluesselRepository,
         KostenkontoRepository $kostenkontoRepository,
+        \App\Repository\ZahlungskategorieRepository $zahlungskategorieRepository,
     ): Response {
         return $this->render('weg/index.html.twig', [
             'wegs' => $wegRepository->findAll(),
@@ -32,6 +33,7 @@ class WegController extends AbstractController
             'umlageschluessel' => $umlageschluesselRepository->findAll(),
             'kostenkontos' => $kostenkontoRepository->findBy([], ['nummer' => 'ASC']),
             'kategorisierungsTypen' => KategorisierungsTyp::cases(),
+            'zahlungskategorien' => $zahlungskategorieRepository->findBy([], ['name' => 'ASC']),
         ]);
     }
 

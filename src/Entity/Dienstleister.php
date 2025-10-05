@@ -65,7 +65,7 @@ class Dienstleister
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $aiParsingPrompt = null;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(name: 'parser_enabled', type: 'boolean')]
     private bool $parserEnabled = false;
 
     public function __construct()

@@ -21,7 +21,7 @@ class DemoUserFixtures extends Fixture implements FixtureGroupInterface, Depende
     {
         // Use environment variable for demo password, fallback to secure default
         $demoPassword = $_ENV['DEMO_PASSWORD'] ?? 'ChangeMe123!';
-        
+
         $demoUsers = [
             [
                 'email' => 'viewer@demo.local',

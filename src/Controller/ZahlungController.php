@@ -7,6 +7,7 @@ use App\Repository\DienstleisterRepository;
 use App\Repository\KostenkontoRepository;
 use App\Repository\ZahlungRepository;
 use App\Repository\ZahlungskategorieRepository;
+use App\Service\ZahlungKategorisierungService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,27 +25,33 @@ class ZahlungController extends AbstractController
         $zahlungskategorieId = $request->query->get('zahlungskategorie');
         $dienstleisterId = $request->query->get('dienstleister');
         $wegEinheitId = $request->query->get('weg_einheit');
+        $onlyUncategorized = $request->query->getBoolean('only_uncategorized');
 
         // Build criteria for filtering
-        $criteria = [];
-        if ($kostenkontoId) {
-            $criteria['kostenkonto'] = $kostenkontoId;
-        }
-        if ($zahlungskategorieId) {
-            $criteria['hauptkategorie'] = $zahlungskategorieId;
-        }
-        if ($dienstleisterId) {
-            $criteria['dienstleister'] = $dienstleisterId;
-        }
-        if ($wegEinheitId) {
-            $criteria['eigentuemer'] = $wegEinheitId;
-        }
+        if ($onlyUncategorized) {
+            // Find payments where hauptkategorie OR kostenkonto is missing
+            $zahlungen = $zahlungRepository->findUncategorized();
+        } else {
+            $criteria = [];
+            if ($kostenkontoId) {
+                $criteria['kostenkonto'] = $kostenkontoId;
+            }
+            if ($zahlungskategorieId) {
+                $criteria['hauptkategorie'] = $zahlungskategorieId;
+            }
+            if ($dienstleisterId) {
+                $criteria['dienstleister'] = $dienstleisterId;
+            }
+            if ($wegEinheitId) {
+                $criteria['eigentuemer'] = $wegEinheitId;
+            }
 
-        // Get filtered payments
-        $zahlungen = $zahlungRepository->findBy(
-            $criteria,
-            ['datum' => 'DESC']
-        );
+            // Get filtered payments
+            $zahlungen = $zahlungRepository->findBy(
+                $criteria,
+                ['datum' => 'DESC']
+            );
+        }
 
         // Get all data for filter dropdowns
         $kostenkontos = $kostenkontoRepository->findBy(['isActive' => true], ['nummer' => 'ASC']);
@@ -62,6 +69,55 @@ class ZahlungController extends AbstractController
             'selectedZahlungskategorie' => $zahlungskategorieId,
             'selectedDienstleister' => $dienstleisterId,
             'selectedWegEinheit' => $wegEinheitId,
+            'onlyUncategorized' => $onlyUncategorized,
         ]);
+    }
+
+    #[Route('/bulk-kategorisieren', name: 'app_zahlung_bulk_kategorisieren', methods: ['POST'])]
+    public function bulkKategorisieren(
+        Request $request,
+        ZahlungRepository $zahlungRepository,
+        ZahlungKategorisierungService $kategorisierungService,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if (!$this->isCsrfTokenValid('bulk_kategorisieren', $request->request->get('_token'))) {
+            $this->addFlash('error', 'Ungültiges CSRF-Token.');
+
+            return $this->redirectToRoute('app_zahlung_index');
+        }
+
+        // Get all uncategorized payments (missing hauptkategorie OR kostenkonto)
+        $zahlungen = $zahlungRepository->findUncategorized();
+
+        $categorized = 0;
+        foreach ($zahlungen as $zahlung) {
+            if ($kategorisierungService->kategorisieren($zahlung)) {
+                ++$categorized;
+            }
+        }
+
+        $entityManager->flush();
+
+        $uncategorized = \count($zahlungen) - $categorized;
+
+        if ($categorized > 0) {
+            $this->addFlash('success', \sprintf(
+                '%d Zahlungen wurden automatisch kategorisiert.',
+                $categorized
+            ));
+        }
+
+        if ($uncategorized > 0) {
+            $this->addFlash('warning', \sprintf(
+                '%d Zahlungen konnten nicht automatisch kategorisiert werden und benötigen manuelle Kategorisierung.',
+                $uncategorized
+            ));
+        }
+
+        if (0 === $categorized && 0 === $uncategorized) {
+            $this->addFlash('info', 'Alle Zahlungen sind bereits kategorisiert.');
+        }
+
+        return $this->redirectToRoute('app_zahlung_index');
     }
 }

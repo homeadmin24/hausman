@@ -204,10 +204,16 @@ class CostCalculationService
                 continue;
             }
 
+            // Skip externally calculated kostenkonto (01* Heizung, 02* Wasser)
+            // These are calculated by ExternalCostService instead
+            $verteilungsschluessel = $kostenkonto->getUmlageschluessel()?->getSchluessel() ?? '05*';
+            if (\in_array($verteilungsschluessel, ['01*', '02*'], true)) {
+                continue;
+            }
+
             $betrag = (float) $zahlung->getBetrag();
 
             $nummer = $kostenkonto->getNummer();
-            $verteilungsschluessel = $kostenkonto->getUmlageschluessel()?->getSchluessel() ?? '05*';
 
             if (!isset($grouped[$nummer])) {
                 $grouped[$nummer] = [

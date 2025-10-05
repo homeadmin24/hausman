@@ -18,6 +18,11 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 #[Route('/dokument')]
 class DokumentController extends AbstractController
 {
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
+
     #[Route('/', name: 'app_dokument_index', methods: ['GET'])]
     public function index(Request $request, DokumentRepository $dokumentRepository): Response
     {
@@ -53,6 +58,13 @@ class DokumentController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, InvoiceProcessingService $invoiceProcessor): Response
     {
         $dokument = new Dokument();
+
+        // Pre-fill category from query parameter
+        $kategorie = $request->query->get('kategorie');
+        if ($kategorie) {
+            $dokument->setKategorie($kategorie);
+        }
+
         $form = $this->createForm(DokumentType::class, $dokument);
         $form->handleRequest($request);
 
@@ -61,8 +73,9 @@ class DokumentController extends AbstractController
 
             if ($uploadedFile instanceof UploadedFile) {
                 $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), \PATHINFO_FILENAME);
+                $originalExtension = pathinfo($uploadedFile->getClientOriginalName(), \PATHINFO_EXTENSION);
                 $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $uploadedFile->guessExtension();
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . mb_strtolower($originalExtension);
 
                 $kategorie = $dokument->getKategorie() ?: 'uploads';
                 $uploadPath = $this->getParameter('kernel.project_dir') . '/data/dokumente/' . $kategorie;
@@ -110,8 +123,11 @@ class DokumentController extends AbstractController
             ]);
         }
 
-        // Redirect to index if accessed directly (template removed)
-        return $this->redirectToRoute('app_dokument_index');
+        // Full page template for direct access
+        return $this->render('dokument/new_page.html.twig', [
+            'dokument' => $dokument,
+            'form' => $form,
+        ]);
     }
 
     #[Route('/{id}', name: 'app_dokument_show', methods: ['GET'])]
@@ -123,8 +139,10 @@ class DokumentController extends AbstractController
             ]);
         }
 
-        // Redirect to index if accessed directly (template removed)
-        return $this->redirectToRoute('app_dokument_index');
+        // Full page template for direct access
+        return $this->render('dokument/show_page.html.twig', [
+            'dokument' => $dokument,
+        ]);
     }
 
     #[Route('/{id}/edit', name: 'app_dokument_edit', methods: ['GET', 'POST'])]

@@ -31,6 +31,10 @@ services:
     App\Service\Parser\ParserFactory:
         arguments:
             $projectDir: '%kernel.project_dir%'
+            
+    App\Service\BankStatementParsingService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
 
     # HGA Service Configuration
     App\Service\Hga\CalculationInterface:
@@ -59,4 +63,8 @@ services:
         arguments:
             $txtReportGenerator: '@App\Service\Hga\Report\TxtReportGenerator'
             $pdfReportGenerator: '@App\Service\Hga\Report\PdfReportGenerator'
+            
+    App\Controller\CsvImportController:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
 
