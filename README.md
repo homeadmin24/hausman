@@ -1,5 +1,7 @@
 # Hausman - WEG-Verwaltungssystem
 
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/homeadmin24/hausman/tree/main)
+
 ## Überblick
 
 Hausman ist ein umfassendes Immobilienverwaltungssystem für deutsche Wohnungseigentümergemeinschaften (WEG). Es bietet Finanzverfolgung, Zahlungsverwaltung, Rechnungsverarbeitung und automatisierte Erstellung von Hausgeldabrechnungen.
@@ -16,29 +18,6 @@ Hausman ist ein umfassendes Immobilienverwaltungssystem für deutsche Wohnungsei
   - Webpack Encore
 - **PDF-Generierung**: DomPDF
 - **Datentabellen**: Simple-DataTables
-
-## Projektstruktur
-
-```
-hausman/
-├── assets/              # Frontend-Assets (JS, CSS, Controller)
-├── backup/              # Datenbank-Backups
-├── bin/                 # Konsolen-Skripte und Tools
-├── config/              # Symfony-Konfiguration
-├── data/                # Dokumente und Zahlungsdaten
-├── migrations/          # Datenbank-Migrationen
-├── public/              # Web-Root
-├── src/
-│   ├── Command/         # Konsolen-Befehle
-│   ├── Controller/      # HTTP-Controller
-│   ├── Entity/          # Doctrine-Entitäten
-│   ├── Form/            # Formular-Typen
-│   ├── Repository/      # Daten-Repositories
-│   ├── Service/         # Business-Logik-Services
-│   └── Twig/            # Twig-Erweiterungen
-├── templates/           # Twig-Templates
-├── tests/               # Unit- und Funktionstests
-└── var/                 # Cache, Logs, generierte Dateien
 ```
 
 ## Kernfunktionen
@@ -70,36 +49,27 @@ hausman/
 - Wirtschaftsplan für das Folgejahr
 - Kontostandsentwicklung und Vermögensübersicht
 
+### 6. CSV-Import & Auto-Kategorisierung
+- Automatischer Import von Kontoauszügen (Sparkasse SEPA-Format)
+- Intelligente Auto-Kategorisierung mit Pattern-Matching
+- Fuzzy-Matching für Eigentümer-Zuordnung
+- Duplikatserkennung (3-stufiges Fallback-System)
+- Automatische Erstellung neuer Dienstleister
+
+## Dokumentation
+
+📚 **Vollständige Projektdokumentation**: [CLAUDE.md](CLAUDE.md)
+
+Die Dokumentation ist in drei Hauptkategorien organisiert:
+- **BusinessLogic/** - WEG-Geschäftslogik, Finanzberechnungen, Steuerrecht (Rücklagenzuführung, §35a EStG)
+- **CoreSystem/** - Anwendungsfunktionen (CSV-Import, Zahlungskategorien, Authentifizierung)
+- **TechnicalArchitecture/** - Implementierung, Datenbankschema, Architektur-Entscheidungen
+
 ## Datenbankschema
 
 Das System verwendet **MySQL 8.0 mit Doctrine ORM 3.3** für umfassende WEG-Finanzverwaltung.
 
-**Kern-Entitäten**: Weg, WegEinheit, Zahlung, Kostenkonto, Dienstleister, Rechnung, Dokument, Hausgeldabrechnung, MonatsSaldo
-
-📖 **Vollständige Dokumentation**: [Database Schema Documentation](doc/TechnicalArchitecture/DATABASE_SCHEMA.md)
-
-## Routen und Controller
-
-### Hauptrouten
-
-- `/` - Dashboard mit Finanzübersicht
-- `/zahlung/` - Zahlungsverwaltung (Liste, Erstellen, Bearbeiten, Löschen)
-- `/zahlung/new` - Neue Zahlung erfassen
-- `/zahlung/{id}/edit` - Zahlung bearbeiten
-- `/rechnung/` - Rechnungsverwaltung
-- `/dienstleister/` - Dienstleisterverwaltung
-- `/dokument/` - Dokumentenverwaltung
-
-### Controller
-
-1. **HomeController**: Dashboard und Statistiken
-2. **ZahlungController**: Zahlungsübersicht
-3. **ZahlungCreateController**: Neue Zahlungen erstellen
-4. **ZahlungEditController**: Zahlungen bearbeiten
-5. **ZahlungDeleteController**: Zahlungen löschen
-6. **RechnungController**: Rechnungsverwaltung
-7. **DienstleisterController**: Dienstleisterverwaltung
-8. **DokumentController**: Dokumentenverwaltung
+📖 **Detailliertes Schema**: [Database Schema Documentation](doc/TechnicalArchitecture/DATABASE_SCHEMA.md)
 
 ## Wichtige Services
 
@@ -121,114 +91,149 @@ Zentrale Berechnungslogik für:
 - Hebeanlage-Spezialverteilung
 - Externe Heiz- und Wasserkosten
 
-## Konsolen-Befehle
+## Installation & Bereitstellung
 
-### Hausgeldabrechnung generieren
+### Option 1: Mit Docker (Empfohlen für lokale Entwicklung)
+
+1. Repository klonen:
+   ```bash
+   git clone https://github.com/homeadmin24/hausman.git
+   cd hausman
+   ```
+
+2. Docker-Container starten:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. In den Web-Container wechseln und Abhängigkeiten installieren:
+   ```bash
+   docker exec -it hausman-web-1 bash
+   composer install
+   npm install
+   npm run build
+   ```
+
+4. Datenbank-Migrationen ausführen:
+   ```bash
+   docker exec hausman-web-1 php bin/console doctrine:migrations:migrate --no-interaction
+   ```
+
+5. Systemkonfiguration laden:
+   ```bash
+   docker exec hausman-web-1 php bin/console doctrine:fixtures:load --group=system-config --no-interaction
+   ```
+
+6. Admin-Benutzer erstellen:
+   ```bash
+   docker exec hausman-web-1 php bin/console app:create-admin
+   ```
+
+7. Anwendung öffnen:
+   - Web: http://localhost:8000
+   - MySQL: localhost:3307 (root/rootpassword)
+
+**Docker-Befehle:**
 ```bash
-php bin/console app:generate-hausgeldabrechnung <weg-id> <jahr> [--format=pdf|txt]
+# Container starten
+docker-compose up -d
+
+# Container stoppen
+docker-compose down
+
+# Logs anzeigen
+docker logs hausman-web-1 -f
+
+# In Web-Container Shell
+docker exec -it hausman-web-1 bash
+
+# Datenbank-Backup
+./bin/backup_db.sh "beschreibung"
 ```
-Generiert Hausgeldabrechnungen für alle Einheiten einer WEG.
 
-### Monatssalden importieren
-```bash
-php bin/console app:import-monthly-balance <weg-id> <jahr> <monat> <saldo>
-```
-Importiert monatliche Kontostände für die Kontostandsentwicklung.
+---
 
-## Installation
+### Option 2: DigitalOcean App Platform (One-Click Cloud Deployment)
 
-1. Repository klonen
+Klicken Sie auf den Button oben, um Hausman mit einem Klick auf DigitalOcean bereitzustellen:
+
+1. Klicken Sie auf den "Deploy to DO" Button oben im README
+2. Verbinden Sie Ihr GitHub-Repository
+3. DigitalOcean erstellt automatisch:
+   - PHP-Web-Service mit Nginx
+   - MySQL 8.0 Datenbank
+   - Automatische SSL-Zertifikate
+   - HTTPS-Zugriff mit eigener Domain
+4. Nach der Bereitstellung via DigitalOcean Console:
+   ```bash
+   # Admin-Benutzer erstellen
+   php bin/console app:create-admin
+
+   # Systemkonfiguration laden
+   php bin/console doctrine:fixtures:load --group=system-config --no-interaction
+   ```
+
+**Vorteile:**
+- ✅ Keine Serverkonfiguration notwendig
+- ✅ Automatische Backups
+- ✅ SSL-Zertifikate inklusive
+- ✅ Skalierbar (bei Bedarf mehr Ressourcen)
+- ✅ Automatische Updates bei Git-Push
+
+**Kosten:** Ab ~$5/Monat (Basic Tier)
+
+**Konfiguration:** Die Bereitstellung verwendet das Repository `homeadmin24/hausman` auf GitHub.
+
+---
+
+### Option 3: Ohne Docker (Manuelle Installation)
+
+1. Repository klonen:
+   ```bash
+   git clone https://github.com/homeadmin24/hausman.git
+   cd hausman
+   ```
+
 2. Abhängigkeiten installieren:
    ```bash
    composer install
    npm install
    ```
+
 3. Datenbank in `.env` konfigurieren:
    ```
    DATABASE_URL="mysql://app:changeme@127.0.0.1:3306/hausman?serverVersion=8.0.32&charset=utf8mb4"
    ```
+
 4. Datenbank erstellen und Migrationen ausführen:
    ```bash
    php bin/console doctrine:database:create
    php bin/console doctrine:migrations:migrate
    ```
-5. Fixtures laden (optional):
+
+5. Systemkonfiguration laden:
    ```bash
-   php bin/console doctrine:fixtures:load
+   php bin/console doctrine:fixtures:load --group=system-config
    ```
-6. Frontend-Assets erstellen:
+
+6. Admin-Benutzer erstellen:
+   ```bash
+   php bin/console app:create-admin
+   ```
+
+7. Frontend-Assets erstellen:
    ```bash
    npm run build
    ```
 
-## Entwicklung
+8. Entwicklungsserver starten:
+   ```bash
+   symfony server:start
+   ```
 
-### Entwicklungsserver starten
-```bash
-symfony server:start
-npm run watch
-```
-
-### Code-Qualitäts-Tools
-- PHP CS Fixer: `vendor/bin/php-cs-fixer fix`
-- PHPStan: `vendor/bin/phpstan analyse`
-- PHPUnit: `php bin/phpunit`
-
-## Frontend-Architektur
-
-### Stimulus-Controller
-- `modal_controller.js`: Modal-Dialog-Verwaltung
-- `zahlung_controller.js`: Zahlungsbezogene UI-Interaktionen
-- `zahlung_form_controller.js`: Formularverarbeitung für Zahlungen
-- `csrf_protection_controller.js`: CSRF-Token-Verwaltung
-
-### Styling
-- Tailwind CSS 4.0 mit PostCSS
-- Flowbite UI-Komponenten
-- Eigene Twig-Erweiterung für Tailwind-Klassen-Verwaltung
-
-## Sicherheitsfunktionen
-
-- CSRF-Schutz bei allen Formularen
-- Symfony Security Bundle Integration
-- Umgebungsbasierte Konfiguration
-- Sichere Session-Verwaltung
-
-## Deutsche Steuerrechtliche Besonderheiten
-
-Das System enthält spezielle Funktionen für deutsches Steuerrecht:
-- Haushaltsnahe Dienstleistungen (§35a EStG) mit Arbeits-/Fahrtkosten-Tracking
-- Trennung von umlagefähigen und nicht umlagefähigen Kosten
-- Ordnungsgemäße MwSt-Erfassung und -Berichterstattung
-- Unterstützung für Handwerkerleistungen und haushaltsnahe Dienstleistungen
-
-## Zahlungskategorien
-
-Das System verwendet ein datenbankgesteuertes Kategoriesystem:
-
-**AUSGABEN (Negative Beträge):**
-1. **Rechnung von Dienstleister** - Rechnungen von Dienstleistern
-2. **Direktbuchung Kostenkonto** - Direkte Kostenkontobuchungen
-3. **Auslagenerstattung Eigentümer** - Erstattungen an Eigentümer
-4. **Rückzahlung an Eigentümer** - Rückzahlungen an Eigentümer
-5. **Bankgebühren** - Bankgebühren
-
-**EINNAHMEN (Positive Beträge):**
-6. **Hausgeld-Zahlung** - Monatliche Hausgeldvorschüsse
-7. **Sonderumlage** - Sonderumlagen
-8. **Gutschrift Dienstleister** - Gutschriften von Dienstleistern
-9. **Zinserträge** - Zinserträge
-10. **Sonstige Einnahme** - Weitere Einnahmen
-
-**NEUTRAL (Nullbeträge erlaubt):**
-11. **Umbuchung** - Interne Umbuchungen
-12. **Korrektur** - Korrekturbuchungen
-
-## Zukünftige Erweiterungen
-
-- API-Endpunkte für externe Integrationen
-- Erweiterte Berichts- und Analysefunktionen
-- Automatisierter Kontoauszugsimport
-- Mieterportal für Nebenkostenabrechnungen
-- Integration mit DATEV
-- Elektronische Beschlussfassung
+**Voraussetzungen:**
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- MySQL 8.0+
+- Symfony CLI (optional)
