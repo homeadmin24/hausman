@@ -179,7 +179,7 @@ Klicken Sie auf den Button oben, um Hausman mit einem Klick auf DigitalOcean ber
 - ✅ Skalierbar (bei Bedarf mehr Ressourcen)
 - ✅ Automatische Updates bei Git-Push
 
-**Kosten:** Ab ~$5/Monat (Basic Tier)
+**Kosten:** Ab ~$12/Monat (App: $5 + MySQL Production DB: $7)
 
 **Konfiguration:** Die Bereitstellung verwendet das Repository `homeadmin24/hausman` auf GitHub.
 

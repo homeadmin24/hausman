@@ -45,5 +45,5 @@ spec:
     - name: hausmandb
       engine: MYSQL
       version: "8"
-      production: false
+      production: true
       cluster_name: hausman-db-cluster
