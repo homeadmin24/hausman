@@ -18,7 +18,6 @@ Hausman ist ein umfassendes Immobilienverwaltungssystem für deutsche Wohnungsei
   - Webpack Encore
 - **PDF-Generierung**: DomPDF
 - **Datentabellen**: Simple-DataTables
-```
 
 ## Kernfunktionen
 
